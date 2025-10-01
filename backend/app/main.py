@@ -1,19 +1,17 @@
 from fastapi import FastAPI
-from fastapi import Depends
-from sqlalchemy.orm import Session
-from backend.app import db
-from backend.app.models.user import User
+from .db import engine, Base
+from .routers import auth_router, users_router
+import os
 
-app = FastAPI()
+# cria tabelas (apenas para dev; em produção use alembic)
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="FundMatch API", version="0.1.0")
+
+# inclui routers
+app.include_router(auth_router.router)
+app.include_router(users_router.router)
 
 @app.get("/health")
-def health_check():
+def health():
     return {"status": "ok"}
-
-@app.post("/users/test")
-def create_user(database: Session = Depends(db.get_db)):
-    new_user = User(name="Teste", email="teste@fundmatch.com")
-    database.add(new_user)
-    database.commit()
-    database.refresh(new_user)
-    return {"id": new_user.id, "name": new_user.name}
