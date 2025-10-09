@@ -4,8 +4,6 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import schemas, crud, models, auth
 from ..db import get_db
-from jose import JWTError, jwt
-import os
 
 router = APIRouter(prefix="/users", tags=["users"])
 

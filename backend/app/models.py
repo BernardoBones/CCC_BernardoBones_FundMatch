@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Enum, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Enum, Text, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -30,3 +30,15 @@ class InvestorProfile(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="profile")
+
+class Fund(Base):
+    __tablename__ = "funds"
+
+    id = Column(Integer, primary_key=True, index=True)
+    cnpj = Column(String(20), unique=True, index=True)
+    name = Column(String(255), nullable=False)
+    class_name = Column(String(100), nullable=True)
+    rentability = Column(Float, nullable=True)
+    risk = Column(Float, nullable=True)
+    sharpe = Column(Float, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow)

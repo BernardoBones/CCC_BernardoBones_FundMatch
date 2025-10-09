@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 from . import models
 from .auth import hash_password
@@ -51,3 +52,22 @@ def create_or_update_profile(db: Session, user_id: int, risk_profile, amount_ava
     db.commit()
     db.refresh(prof)
     return prof
+
+def upsert_fund(db: Session, cnpj: str, name: str, class_name: str, rentability: float, risk: float, sharpe: float):
+    fund = db.query(models.Fund).filter(models.Fund.cnpj == cnpj).first()
+    if not fund:
+        fund = models.Fund(cnpj=cnpj, name=name, class_name=class_name, rentability=rentability, risk=risk, sharpe=sharpe)
+        db.add(fund)
+    else:
+        fund.name = name
+        fund.class_name = class_name
+        fund.rentability = rentability
+        fund.risk = risk
+        fund.sharpe = sharpe
+        fund.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(fund)
+    return fund
+
+def list_funds(db: Session, skip=0, limit=100):
+    return db.query(models.Fund).offset(skip).limit(limit).all()
