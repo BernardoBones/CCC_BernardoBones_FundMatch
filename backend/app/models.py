@@ -42,3 +42,15 @@ class Fund(Base):
     risk = Column(Float, nullable=True)
     sharpe = Column(Float, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow)
+
+    history = relationship("FundHistory", back_populates="fund", cascade="all, delete-orphan")
+
+class FundHistory(Base):
+    __tablename__ = "fund_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    fund_id = Column(Integer, ForeignKey("funds.id", ondelete="CASCADE"), index=True)
+    date = Column(DateTime, default=datetime.utcnow, index=True)
+    nav = Column(Float, nullable=False)  # NAV / valor da cota
+
+    fund = relationship("Fund", back_populates="history")

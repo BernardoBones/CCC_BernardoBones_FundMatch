@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from . import models
 from .auth import hash_password
+from .metrics import calculate_returns, calculate_volatility, calculate_sharpe, total_return
 from decimal import Decimal
 
 # Users
@@ -71,3 +72,50 @@ def upsert_fund(db: Session, cnpj: str, name: str, class_name: str, rentability:
 
 def list_funds(db: Session, skip=0, limit=100):
     return db.query(models.Fund).offset(skip).limit(limit).all()
+
+def get_fund_by_cnpj(db: Session, cnpj: str):
+    return db.query(models.Fund).filter(models.Fund.cnpj == str(cnpj)).first()
+
+def list_history_for_fund(db: Session, fund_id: int, limit: int = 100):
+    return db.query(models.FundHistory).filter(models.FundHistory.fund_id == fund_id).order_by(models.FundHistory.date).limit(limit).all()
+
+def add_history_entry(db: Session, fund_id: int, date: datetime, nav: float):
+    entry = models.FundHistory(fund_id=fund_id, date=date, nav=nav)
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+def add_history_bulk(db: Session, fund_id: int, rows):
+    """rows: iterable de tuples (date, nav)"""
+    for date, nav in rows:
+        entry = models.FundHistory(fund_id=fund_id, date=date, nav=nav)
+        db.add(entry)
+    db.commit()
+
+def compute_metrics_from_history(db: Session, cnpj: str, risk_free: float = 0.0):
+    fund = get_fund_by_cnpj(db, cnpj)
+    if not fund:
+        return None
+
+    history = list_history_for_fund(db, fund.id, limit=1000)
+    prices = [h.nav for h in history]
+    if len(prices) < 2:
+        # sem histórico suficiente, retorna zeros
+        return {"rentability": 0.0, "volatility": 0.0, "sharpe": 0.0, "n": len(prices)}
+
+    returns = calculate_returns(prices)
+    vol = calculate_volatility(returns)
+    sharpe = calculate_sharpe(returns, risk_free)
+    rent = total_return(prices)
+
+    # opcional: atualizar os campos do Fund
+    fund.rentability = rent
+    fund.volatility = vol
+    fund.sharpe = sharpe
+    fund.updated_at = datetime.utcnow()
+    db.add(fund)
+    db.commit()
+    db.refresh(fund)
+
+    return {"rentability": rent, "volatility": vol, "sharpe": sharpe, "n": len(prices)}

@@ -9,17 +9,14 @@ import atexit
 
 Base.metadata.create_all(bind=engine)
 
-list = ["http://localhost/:5000",
-        "http://localhost/:8000"
-       ]
-
 app = FastAPI(title="FundMatch API", version="0.2.0")
 
 app.add_middleware(
-  CORSMiddleware,
-  allow_origins = list,
-  allow_methods = ["*"],
-  allow_headers = ["*"]
+    CORSMiddleware,
+    allow_origins=["*"],  # durante desenvolvimento, libera tudo
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Inclui routers
