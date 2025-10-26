@@ -4,6 +4,8 @@ from . import models
 from .auth import hash_password
 from .metrics import calculate_returns, calculate_volatility, calculate_sharpe, total_return
 from decimal import Decimal
+from .models import Favorite, Fund
+from sqlalchemy import func
 
 # Users
 def get_user_by_email(db: Session, email: str):
@@ -119,3 +121,47 @@ def compute_metrics_from_history(db: Session, cnpj: str, risk_free: float = 0.0)
     db.refresh(fund)
 
     return {"rentability": rent, "volatility": vol, "sharpe": sharpe, "n": len(prices)}
+
+def add_favorite(db, user_id: int, fund_id: int):
+    fav = db.query(Favorite).filter_by(user_id=user_id, fund_id=fund_id).first()
+    if not fav:
+        fav = Favorite(user_id=user_id, fund_id=fund_id)
+        db.add(fav)
+        db.commit()
+        db.refresh(fav)
+    return fav
+
+def remove_favorite(db, user_id: int, fund_id: int):
+    fav = db.query(Favorite).filter_by(user_id=user_id, fund_id=fund_id).first()
+    if fav:
+        db.delete(fav)
+        db.commit()
+        return True
+    return False
+
+def list_favorites(db, user_id: int):
+    return (
+        db.query(Fund)
+        .join(Favorite, Favorite.fund_id == Fund.id)
+        .filter(Favorite.user_id == user_id)
+        .all()
+    )
+
+def get_recommendations(db, user_id: int):
+    """Simples: recomenda fundos da classe mais favoritada."""
+
+    # Conta quantos fundos de cada classe o usuário favoritou
+    subq = (
+        db.query(Fund.class_name, func.count(Fund.id).label("total"))
+        .join(Favorite, Favorite.fund_id == Fund.id)
+        .filter(Favorite.user_id == user_id)
+        .group_by(Fund.class_name)
+        .order_by(func.count(Fund.id).desc())
+        .limit(1)
+        .first()
+    )
+    if not subq:
+        return db.query(Fund).limit(5).all()
+
+    top_class = subq[0]
+    return db.query(Fund).filter(Fund.class_name == top_class).limit(5).all()

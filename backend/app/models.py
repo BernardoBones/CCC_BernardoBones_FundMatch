@@ -19,6 +19,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     profile = relationship("InvestorProfile", back_populates="user", uselist=False)
+    favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
 class InvestorProfile(Base):
     __tablename__ = "investor_profiles"
@@ -54,3 +55,13 @@ class FundHistory(Base):
     nav = Column(Float, nullable=False)  # NAV / valor da cota
 
     fund = relationship("Fund", back_populates="history")
+
+class Favorite(Base):
+    __tablename__ = "favorites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    fund_id = Column(Integer, ForeignKey("funds.id", ondelete="CASCADE"))
+
+    user = relationship("User", back_populates="favorites")
+    fund = relationship("Fund")

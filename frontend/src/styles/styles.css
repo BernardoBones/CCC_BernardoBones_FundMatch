@@ -1,0 +1,146 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* Corpo da página */
+body {
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* Containers */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Títulos */
+h1, h2, h3 {
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+/* Listas */
+ul {
+  list-style: none;
+}
+
+li {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* Botões */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 1rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* Botões principais */
+.btn-primary {
+  background-color: #4f46e5; /* roxo */
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: #e5e7eb; /* cinza claro */
+  color: #111827;
+}
+
+/* Botões de favorito */
+.favorite {
+  font-size: 1.2rem;
+  color: #facc15; /* amarelo */
+}
+
+.not-favorite {
+  font-size: 1.2rem;
+  color: #9ca3af; /* cinza */
+}
+
+/* Inputs / Formulários */
+input, select, textarea {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.2);
+}
+
+/* Mensagens de erro / sucesso */
+.error {
+  color: #dc2626; /* vermelho */
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.success {
+  color: #16a34a; /* verde */
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+/* Links */
+a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Responsividade básica */
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+
+  li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  button {
+    margin-top: 8px;
+  }
+}

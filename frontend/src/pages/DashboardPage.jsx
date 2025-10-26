@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
 import FundList from "../components/FundList";
+import "../styles/styles.css";
+
 
 export default function DashboardPage() {
   const [funds, setFunds] = useState([]);

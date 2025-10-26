@@ -2,7 +2,16 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from typing import Optional
+from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from . import crud
+from .db import get_db
 import os
+
+
+# Define o esquema OAuth2 (tokenUrl deve apontar para /auth/login)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # security settings
 SECRET_KEY = os.getenv("JWT_SECRET", "CHANGE_THIS_SECRET_FOR_PROD")
@@ -30,3 +39,23 @@ def decode_token(token: str):
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
+    
+def get_current_user_from_token(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    Extrai e valida o token JWT enviado no header Authorization: Bearer <token>,
+    retornando o usuário autenticado.
+    """
+    payload = decode_token(token)
+    if not payload or "sub" not in payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido ou expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user_id = int(payload["sub"])
+    user = crud.get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário não encontrado")
+
+    return user
