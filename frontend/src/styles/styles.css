@@ -144,3 +144,70 @@ a:hover {
     margin-top: 8px;
   }
 }
+
+/* Grid dos fundos */
+.funds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/* Card individual de fundo */
+.fund-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fund-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.fund-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fund-header h3 {
+  margin: 0;
+  color: #111827;
+}
+
+.fund-card p {
+  margin: 4px 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+/* Abas */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.tab {
+  background-color: #e5e7eb;
+  color: #111827;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab:hover {
+  background-color: #d1d5db;
+}
+
+.tab.active {
+  background-color: #4f46e5;
+  color: #fff;
+}
