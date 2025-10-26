@@ -5,11 +5,33 @@ import enum
 from .db import Base
 
 class RiskProfileEnum(str, enum.Enum):
+    """
+    Enum que representa os perfis de risco possíveis para um investidor.
+
+    Valores:
+        - CONSERVADOR
+        - MODERADO
+        - ARROJADO
+    """
     CONSERVADOR = "conservador"
     MODERADO = "moderado"
     ARROJADO = "arrojado"
 
 class User(Base):
+    """
+    Modelo de usuário da plataforma.
+
+    Campos:
+        id (int): Identificador único.
+        name (str): Nome completo do usuário.
+        email (str): E-mail único.
+        hashed_password (str): Senha criptografada.
+        created_at (datetime): Data de criação do registro.
+
+    Relacionamentos:
+        profile: Perfil de investidor associado.
+        favorites: Lista de fundos favoritados.
+    """
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -22,6 +44,19 @@ class User(Base):
     favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
 class InvestorProfile(Base):
+    """
+    Perfil de investidor associado a um usuário.
+
+    Campos:
+        id (int): Identificador único.
+        user_id (int): ID do usuário (chave estrangeira).
+        risk_profile (RiskProfileEnum): Perfil de risco.
+        amount_available (Decimal): Valor disponível para investir.
+        updated_at (datetime): Última atualização.
+
+    Relacionamentos:
+        user: Referência ao usuário dono do perfil.
+    """
     __tablename__ = "investor_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -33,6 +68,22 @@ class InvestorProfile(Base):
     user = relationship("User", back_populates="profile")
 
 class Fund(Base):
+    """
+    Modelo que representa um fundo de investimento.
+
+    Campos:
+        id (int): Identificador único.
+        cnpj (str): CNPJ do fundo.
+        name (str): Nome do fundo.
+        class_name (str): Classe do fundo (ex: renda fixa, multimercado).
+        rentability (float): Rentabilidade calculada.
+        risk (float): Risco calculado.
+        sharpe (float): Índice de Sharpe calculado.
+        updated_at (datetime): Última atualização.
+
+    Relacionamentos:
+        history: Histórico de cotas (NAVs).
+    """
     __tablename__ = "funds"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -47,6 +98,18 @@ class Fund(Base):
     history = relationship("FundHistory", back_populates="fund", cascade="all, delete-orphan")
 
 class FundHistory(Base):
+    """
+    Histórico de cotas (NAV) de um fundo.
+
+    Campos:
+        id (int): Identificador único.
+        fund_id (int): ID do fundo (chave estrangeira).
+        date (datetime): Data da cota.
+        nav (float): Valor da cota (NAV).
+
+    Relacionamentos:
+        fund: Referência ao fundo associado.
+    """
     __tablename__ = "fund_history"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -57,6 +120,18 @@ class FundHistory(Base):
     fund = relationship("Fund", back_populates="history")
 
 class Favorite(Base):
+    """
+    Associação entre usuário e fundo favoritado.
+
+    Campos:
+        id (int): Identificador único.
+        user_id (int): ID do usuário (chave estrangeira).
+        fund_id (int): ID do fundo (chave estrangeira).
+
+    Relacionamentos:
+        user: Referência ao usuário.
+        fund: Referência ao fundo.
+    """
     __tablename__ = "favorites"
 
     id = Column(Integer, primary_key=True, index=True)

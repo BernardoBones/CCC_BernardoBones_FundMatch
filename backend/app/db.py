@@ -13,6 +13,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
+    """
+    Fornece uma sessão de banco de dados para uso com dependências do FastAPI.
+
+    Garante que a sessão seja fechada corretamente após o uso.
+
+    Yields:
+        Session: Sessão ativa do banco de dados.
+    """
     db = SessionLocal()  
     try:
         yield db  

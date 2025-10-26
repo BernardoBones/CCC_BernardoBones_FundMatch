@@ -2,7 +2,17 @@ from typing import List
 from statistics import mean, pstdev
 
 def calculate_returns(prices: List[float]) -> List[float]:
-    """Retornos simples: (P_t / P_{t-1}) - 1."""
+    """
+    Calcula os retornos simples de uma série de preços.
+
+    Fórmula: (P_t / P_{t-1}) - 1
+
+    Args:
+        prices (List[float]): Lista de preços históricos.
+
+    Returns:
+        List[float]: Lista de retornos entre cada par de dias consecutivos.
+    """
     if not prices or len(prices) < 2:
         return []
     returns = []
@@ -15,13 +25,32 @@ def calculate_returns(prices: List[float]) -> List[float]:
     return returns
 
 def calculate_volatility(returns: List[float]) -> float:
-    """Volatilidade (desvio padrão amostral dos retornos)."""
+    """
+    Calcula a volatilidade dos retornos como o desvio padrão populacional.
+
+    Args:
+        returns (List[float]): Lista de retornos diários.
+
+    Returns:
+        float: Volatilidade dos retornos. Retorna 0.0 se não houver dados suficientes.
+    """
     if not returns or len(returns) < 2:
         return 0.0
     return pstdev(returns)
 
 def calculate_sharpe(returns: List[float], risk_free: float = 0.0) -> float:
-    """Sharpe ratio: (avg return - risk_free) / volatility."""
+    """
+    Calcula o índice de Sharpe da série de retornos.
+
+    Fórmula: (média dos retornos - taxa livre de risco) / volatilidade
+
+    Args:
+        returns (List[float]): Lista de retornos diários.
+        risk_free (float): Taxa livre de risco (default: 0.0).
+
+    Returns:
+        float: Índice de Sharpe. Retorna 0.0 se a volatilidade for zero ou não houver dados.
+    """
     if not returns:
         return 0.0
     avg = mean(returns)
@@ -31,7 +60,17 @@ def calculate_sharpe(returns: List[float], risk_free: float = 0.0) -> float:
     return (avg - risk_free) / vol
 
 def total_return(prices: List[float]) -> float:
-    """Retorno total entre primeiro e último preço."""
+    """
+    Calcula o retorno total entre o primeiro e o último preço da série.
+
+    Fórmula: (P_final / P_inicial) - 1
+
+    Args:
+        prices (List[float]): Lista de preços históricos.
+
+    Returns:
+        float: Retorno total da série. Retorna 0.0 se não houver dados suficientes ou se o preço inicial for zero.
+    """
     if not prices or len(prices) < 2:
         return 0.0
     first = prices[0]

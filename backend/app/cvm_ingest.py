@@ -16,7 +16,18 @@ CVM_CSV_URL = "https://dados.cvm.gov.br/dados/FI/CAD/DADOS/cad_fi.csv"
 
 
 def fetch_cvm_data(limit=50):
-    """Busca dados de fundos diretamente do CSV da CVM"""
+    """
+    Busca dados de fundos diretamente do CSV público da CVM.
+
+    Realiza uma requisição HTTP ao endpoint da CVM, decodifica o conteúdo
+    em formato CSV e retorna os primeiros registros conforme o limite definido.
+
+    Args:
+        limit (int): Número máximo de fundos a retornar.
+
+    Returns:
+        list[dict]: Lista de dicionários com os dados dos fundos.
+    """
     try:
         resp = requests.get(CVM_CSV_URL, timeout=30)
         resp.raise_for_status()
@@ -32,8 +43,17 @@ def fetch_cvm_data(limit=50):
 
 
 def run_cvm_ingestion():
-    """Job principal: busca e grava fundos no banco"""
-    
+    """
+    Job principal de ingestão de dados da CVM.
+
+    Executa a busca dos dados via `fetch_cvm_data`, extrai os campos relevantes
+    e insere ou atualiza os fundos no banco de dados usando `upsert_fund`.
+
+    Logs são gerados para acompanhar o progresso e capturar erros durante o processo.
+
+    Returns:
+        None
+    """
     session: Session = SessionLocal()
     logging.info("Iniciando job de ingestão da CVM...")
 
