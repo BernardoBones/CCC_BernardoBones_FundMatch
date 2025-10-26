@@ -8,6 +8,22 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=schemas.UserOut)
 def register(payload: schemas.UserCreate, db: Session = Depends(get_db)):
+    """
+    Registra um novo usuário.
+
+    Verifica se o e-mail já está cadastrado. Se não estiver, cria um novo usuário
+    com os dados fornecidos.
+
+    Args:
+        payload (schemas.UserCreate): Dados do usuário (nome, e-mail, senha).
+        db (Session): Sessão do banco de dados.
+
+    Returns:
+        schemas.UserOut: Dados do usuário recém-criado.
+
+    Raises:
+        HTTPException: Se o e-mail já estiver registrado.
+    """
     existing = crud.get_user_by_email(db, payload.email)
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -16,6 +32,22 @@ def register(payload: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=schemas.Token)
 def login(payload: schemas.UserLogin, db: Session = Depends(get_db)):
+    """
+    Autentica um usuário e retorna um token de acesso.
+
+    Verifica se o e-mail e a senha estão corretos. Se válidos, gera um token JWT
+    com tempo de expiração definido.
+
+    Args:
+        payload (schemas.UserLogin): Dados de login (e-mail e senha).
+        db (Session): Sessão do banco de dados.
+
+    Returns:
+        dict: Token de acesso e tipo do token.
+
+    Raises:
+        HTTPException: Se as credenciais forem inválidas.
+    """
     user = crud.get_user_by_email(db, payload.email)
     if not user or not auth.verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
@@ -25,6 +57,22 @@ def login(payload: schemas.UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/reset-password")
 def password_reset_request(payload: schemas.PasswordResetRequest, db: Session = Depends(get_db)):
+    """
+    Solicita redefinição de senha.
+
+    Gera um token de redefinição de senha com validade curta. Por segurança,
+    a resposta é sempre a mesma, independentemente da existência do e-mail.
+
+    Args:
+        payload (schemas.PasswordResetRequest): E-mail do usuário.
+        db (Session): Sessão do banco de dados.
+
+    Returns:
+        dict: Mensagem de confirmação e token de redefinição (apenas para testes).
+
+    Raises:
+        HTTPException: Sempre retorna status 200, mesmo se o e-mail não existir.
+    """
     user = crud.get_user_by_email(db, payload.email)
     if not user:
         # não revelar se email existe
@@ -36,6 +84,22 @@ def password_reset_request(payload: schemas.PasswordResetRequest, db: Session = 
 
 @router.post("/confirm-reset")
 def password_reset_confirm(payload: schemas.PasswordResetConfirm, db: Session = Depends(get_db)):
+    """
+    Confirma a redefinição de senha com um token válido.
+
+    Decodifica o token de redefinição, valida seu propósito e atualiza a senha
+    do usuário correspondente.
+
+    Args:
+        payload (schemas.PasswordResetConfirm): Token de redefinição e nova senha.
+        db (Session): Sessão do banco de dados.
+
+    Returns:
+        dict: Mensagem de sucesso.
+
+    Raises:
+        HTTPException: Se o token for inválido ou expirado, ou se o usuário não for encontrado.
+    """
     decoded = auth.decode_token(payload.token)
     if not decoded or decoded.get("purpose") != "reset":
         raise HTTPException(status_code=400, detail="Invalid or expired token")
