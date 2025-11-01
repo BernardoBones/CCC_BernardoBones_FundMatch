@@ -11,12 +11,10 @@ export default function FundsDashboard() {
 
   const api = axios.create({
     baseURL: "http://127.0.0.1:8000",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 
-  // Busca inicial de dados
+  // Carrega fundos, favoritos e recomendações
   useEffect(() => {
     async function fetchData() {
       try {
@@ -36,7 +34,7 @@ export default function FundsDashboard() {
     fetchData();
   }, []);
 
-  // Função de favoritar/desfavoritar
+  // Favoritar / desfavoritar
   async function toggleFavorite(fundId) {
     try {
       if (favorites.includes(fundId)) {
@@ -48,10 +46,30 @@ export default function FundsDashboard() {
       }
     } catch (err) {
       console.error("Erro ao favoritar:", err);
+      alert("Erro ao favoritar. Verifique se está logado.");
     }
   }
 
-  // Renderização dos cards
+  // Gerar PDF do relatório
+  async function generateReport() {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/report/generate", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Falha ao gerar relatório");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (err) {
+      console.error("Erro ao gerar relatório:", err);
+      alert("Erro ao gerar relatório PDF. Verifique sua autenticação.");
+    }
+  }
+
+  // Renderiza cards
   function renderFundCards(list) {
     if (!list.length)
       return <p style={{ marginTop: "12px" }}>Nenhum fundo encontrado.</p>;
@@ -64,27 +82,36 @@ export default function FundsDashboard() {
               <h3>{fund.nome}</h3>
               <button
                 className={
-                  favorites.includes(fund.id)
-                    ? "favorite"
-                    : "not-favorite"
+                  favorites.includes(fund.id) ? "favorite" : "not-favorite"
                 }
                 onClick={() => toggleFavorite(fund.id)}
               >
                 {favorites.includes(fund.id) ? "★" : "☆"}
               </button>
             </div>
-            <p><strong>CNPJ:</strong> {fund.cnpj}</p>
-            <p><strong>Classe:</strong> {fund.classe || "N/A"}</p>
-            <p><strong>Rentabilidade:</strong> {fund.rentabilidade?.toFixed(2) ?? 0}%</p>
-            <p><strong>Risco:</strong> {fund.risco?.toFixed(2) ?? 0}</p>
-            <p><strong>Sharpe:</strong> {fund.sharpe?.toFixed(2) ?? 0}</p>
+            <p>
+              <strong>CNPJ:</strong> {fund.cnpj}
+            </p>
+            <p>
+              <strong>Classe:</strong> {fund.classe || "N/A"}
+            </p>
+            <p>
+              <strong>Rentabilidade:</strong>{" "}
+              {fund.rentabilidade?.toFixed(2) ?? 0}%
+            </p>
+            <p>
+              <strong>Risco:</strong> {fund.risco?.toFixed(2) ?? 0}
+            </p>
+            <p>
+              <strong>Sharpe:</strong> {fund.sharpe?.toFixed(2) ?? 0}
+            </p>
           </div>
         ))}
       </div>
     );
   }
 
-  // Alterna entre abas
+  // Alterna abas
   function getActiveList() {
     switch (activeTab) {
       case "favorites":
@@ -98,9 +125,21 @@ export default function FundsDashboard() {
 
   return (
     <div className="container">
-      <h1>Fundos de Investimento</h1>
+      {/* Cabeçalho e botão de relatório */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h1>Fundos de Investimento</h1>
+        <button className="btn-primary" onClick={generateReport}>
+          📄 Gerar Relatório PDF
+        </button>
+      </div>
 
-      {/* Abas de navegação */}
+      {/* Abas */}
       <div className="tabs">
         <button
           className={activeTab === "funds" ? "tab active" : "tab"}
@@ -122,7 +161,7 @@ export default function FundsDashboard() {
         </button>
       </div>
 
-      {/* Exibição de cards */}
+      {/* Lista dinâmica */}
       {renderFundCards(getActiveList())}
     </div>
   );

@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.db import engine, Base
-from backend.app.routers import auth_router, users_router, funds_router, favorites_router, recommendations_router
+from backend.app.routers import (
+    auth_router,
+    users_router,
+    funds_router,
+    favorites_router,
+    recommendations_router,
+    report_router
+)
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend.app.cvm_ingest import run_cvm_ingestion
 import atexit
@@ -25,6 +32,7 @@ app.include_router(users_router.router)
 app.include_router(funds_router.router)
 app.include_router(favorites_router.router)
 app.include_router(recommendations_router.router)
+app.include_router(report_router.router)
 
 @app.get("/health")
 def health():
