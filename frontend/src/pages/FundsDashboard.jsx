@@ -24,6 +24,10 @@ export default function FundsDashboard() {
           api.get("/recommendations/"),
         ]);
 
+        console.log("📊 /funds/:", fundRes.data);
+        console.log("⭐ /favorites/:", favRes.data);
+        console.log("💡 /recommendations/:", recRes.data);
+
         setFunds(fundRes.data);
         setFavorites(favRes.data.map((f) => f.id));
         setRecommendations(recRes.data);
@@ -79,7 +83,7 @@ export default function FundsDashboard() {
         {list.map((fund) => (
           <div key={fund.id} className="fund-card">
             <div className="fund-header">
-              <h3>{fund.nome}</h3>
+              <h3>{fund.name}</h3>
               <button
                 className={
                   favorites.includes(fund.id) ? "favorite" : "not-favorite"
@@ -89,22 +93,12 @@ export default function FundsDashboard() {
                 {favorites.includes(fund.id) ? "★" : "☆"}
               </button>
             </div>
-            <p>
-              <strong>CNPJ:</strong> {fund.cnpj}
-            </p>
-            <p>
-              <strong>Classe:</strong> {fund.classe || "N/A"}
-            </p>
-            <p>
-              <strong>Rentabilidade:</strong>{" "}
-              {fund.rentabilidade?.toFixed(2) ?? 0}%
-            </p>
-            <p>
-              <strong>Risco:</strong> {fund.risco?.toFixed(2) ?? 0}
-            </p>
-            <p>
-              <strong>Sharpe:</strong> {fund.sharpe?.toFixed(2) ?? 0}
-            </p>
+
+            <p><strong>CNPJ:</strong> {fund.cnpj}</p>
+            <p><strong>Classe:</strong> {fund.class_name || "N/A"}</p>
+            <p><strong>Rentabilidade:</strong> {fund.rentability?.toFixed(2) ?? 0}%</p>
+            <p><strong>Risco:</strong> {fund.risk?.toFixed(2) ?? 0}</p>
+            <p><strong>Sharpe:</strong> {fund.sharpe?.toFixed(2) ?? 0}</p>
           </div>
         ))}
       </div>
