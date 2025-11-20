@@ -20,13 +20,13 @@ app = FastAPI(title="FundMatch API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # durante desenvolvimento, libera tudo
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Inclui routers
+# Routers
 app.include_router(auth_router.router)
 app.include_router(users_router.router)
 app.include_router(funds_router.router)
@@ -44,3 +44,9 @@ scheduler.add_job(run_cvm_ingestion, "interval", hours=6, id="cvm_ingestion")
 scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())
+
+@app.on_event("startup")
+def startup_event():
+    print(">> Executando ingestão inicial da CVM...")
+    run_cvm_ingestion()
+    print(">> Ingestão inicial concluída!")
