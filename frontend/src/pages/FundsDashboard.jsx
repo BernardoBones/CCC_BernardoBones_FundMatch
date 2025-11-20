@@ -7,7 +7,7 @@ export default function FundsDashboard() {
   const [favorites, setFavorites] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [activeTab, setActiveTab] = useState("funds");
-  const [metrics, setMetrics] = useState({}); // ← MÉTRICAS POR CNPJ
+  const [metrics, setMetrics] = useState({});
 
   const token = localStorage.getItem("token");
 
@@ -39,13 +39,12 @@ export default function FundsDashboard() {
   }, []);
 
   // ============================================================
-  // 2. MESMA FUNÇÃO DO BOTÃO /funds/{cnpj}/metrics
+  // 2. computeMetrics (igual ao botão)
   // ============================================================
   async function computeMetrics(cnpj) {
     try {
       const res = await api.get(`/funds/${cnpj}/metrics`);
 
-      // salva as métricas dentro do estado
       setMetrics((prev) => ({
         ...prev,
         [cnpj]: res.data,
@@ -56,18 +55,25 @@ export default function FundsDashboard() {
   }
 
   // ============================================================
-  // 3. Chamar computeMetrics AUTOMATICAMENTE ao renderizar
+  // 3. Carregar métricas para FUNDS
   // ============================================================
   useEffect(() => {
     funds.forEach((fund) => {
-      if (!metrics[fund.cnpj]) {
-        computeMetrics(fund.cnpj);
-      }
+      if (!metrics[fund.cnpj]) computeMetrics(fund.cnpj);
     });
   }, [funds]);
 
   // ============================================================
-  // 4. Favoritar / desfavoritar
+  // 4. Carregar métricas para RECOMMENDATIONS
+  // ============================================================
+  useEffect(() => {
+    recommendations.forEach((fund) => {
+      if (!metrics[fund.cnpj]) computeMetrics(fund.cnpj);
+    });
+  }, [recommendations]);
+
+  // ============================================================
+  // 5. Favoritar / desfavoritar
   // ============================================================
   async function toggleFavorite(fundId) {
     try {
@@ -80,12 +86,12 @@ export default function FundsDashboard() {
       }
     } catch (err) {
       console.error("Erro ao favoritar:", err);
-      alert("Erro ao favoritar. Verifique se está logado.");
+      alert("Erro ao favoritar.");
     }
   }
 
   // ============================================================
-  // 5. Gerar relatório PDF
+  // 6. PDF
   // ============================================================
   async function generateReport() {
     try {
@@ -100,13 +106,12 @@ export default function FundsDashboard() {
       const url = window.URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (err) {
-      console.error("Erro ao gerar relatório:", err);
-      alert("Erro ao gerar relatório PDF. Verifique sua autenticação.");
+      alert("Erro ao gerar relatório PDF.");
     }
   }
 
   // ============================================================
-  // 6. Renderizar cards com MÉTRICAS DO BACKEND
+  // 7. Render de cards
   // ============================================================
   function renderFundCards(list) {
     if (!list.length)
@@ -121,6 +126,7 @@ export default function FundsDashboard() {
             <div key={fund.id} className="fund-card">
               <div className="fund-header">
                 <h3>{fund.name}</h3>
+
                 <button
                   className={
                     favorites.includes(fund.id) ? "favorite" : "not-favorite"
@@ -132,9 +138,8 @@ export default function FundsDashboard() {
               </div>
 
               <p><strong>CNPJ:</strong> {fund.cnpj}</p>
-              <p><strong>Classe:</strong> {fund.class_name || "N/A"}</p>
+              <p><strong>Classe:</strong> {fund.class_name}</p>
 
-              {/* ---------------- MÉTRICAS REAIS ---------------- */}
               {!m && <p>Carregando métricas...</p>}
 
               {m && (
@@ -152,7 +157,7 @@ export default function FundsDashboard() {
   }
 
   // ============================================================
-  // 7. Abas
+  // 8. Abas
   // ============================================================
   function getActiveList() {
     switch (activeTab) {
@@ -167,22 +172,13 @@ export default function FundsDashboard() {
 
   return (
     <div className="container">
-
-      {/* Cabeçalho + relatório */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
         <h1>Fundos de Investimento</h1>
         <button className="btn-primary" onClick={generateReport}>
           📄 Gerar Relatório PDF
         </button>
       </div>
 
-      {/* Abas */}
       <div className="tabs">
         <button
           className={activeTab === "funds" ? "tab active" : "tab"}
@@ -206,7 +202,6 @@ export default function FundsDashboard() {
         </button>
       </div>
 
-      {/* Render */}
       {renderFundCards(getActiveList())}
     </div>
   );

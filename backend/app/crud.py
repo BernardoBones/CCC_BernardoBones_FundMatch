@@ -344,31 +344,57 @@ def list_favorites(db, user_id: int):
         .all()
     )
 
-def get_recommendations(db, user_id: int):
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from .models import Fund, Favorite
+
+def get_recommendations(db: Session, user_id: int):
     """
     Retorna recomendações de fundos com base na classe mais favoritada pelo usuário.
 
-    Se o usuário não tiver favoritos, retorna fundos genéricos.
-
-    Args:
-        db (Session): Sessão do banco de dados.
-        user_id (int): ID do usuário.
-
-    Returns:
-        List[models.Fund]: Lista de fundos recomendados.
+    - Se o usuário tiver favoritos → identifica a classe mais favoritada.
+    - Recomenda até 5 fundos dessa classe.
+    - Evita recomendar fundos já favoritados.
+    - Se o usuário não tiver favoritos → recomenda fundos genéricos.
     """
-    # Conta quantos fundos de cada classe o usuário favoritou
-    subq = (
-        db.query(Fund.class_name, func.count(Fund.id).label("total"))
+
+    # 1. Descobre qual classe o usuário favoritou mais
+    top_class_row = (
+        db.query(
+            Fund.class_name,
+            func.count(Fund.id).label("total")
+        )
         .join(Favorite, Favorite.fund_id == Fund.id)
         .filter(Favorite.user_id == user_id)
         .group_by(Fund.class_name)
         .order_by(func.count(Fund.id).desc())
-        .limit(1)
         .first()
     )
-    if not subq:
+
+    # 2. Se não tiver favoritos → devolve fundos genéricos
+    if not top_class_row:
         return db.query(Fund).limit(5).all()
 
-    top_class = subq[0]
-    return db.query(Fund).filter(Fund.class_name == top_class).limit(5).all()
+    top_class = top_class_row.class_name
+
+    # 3. Busca ids que já estão favoritados para evitar recomendar duplicado
+    user_favorites_ids = (
+        db.query(Favorite.fund_id)
+        .filter(Favorite.user_id == user_id)
+        .subquery()
+    )
+
+    # 4. Recomenda até 5 fundos dessa classe que não estão entre os favoritos
+    recommendations = (
+        db.query(Fund)
+        .filter(Fund.class_name == top_class)
+        .filter(Fund.id.not_in(user_favorites_ids))
+        .limit(5)
+        .all()
+    )
+
+    # 5. Se todos são favoritos → retorna genéricos para não ficar vazio
+    if len(recommendations) == 0:
+        return db.query(Fund).limit(5).all()
+
+    return recommendations
