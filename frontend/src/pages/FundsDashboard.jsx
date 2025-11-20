@@ -7,6 +7,8 @@ export default function FundsDashboard() {
   const [favorites, setFavorites] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [activeTab, setActiveTab] = useState("funds");
+  const [metrics, setMetrics] = useState({}); // ← MÉTRICAS POR CNPJ
+
   const token = localStorage.getItem("token");
 
   const api = axios.create({
@@ -14,7 +16,9 @@ export default function FundsDashboard() {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  // Carrega fundos, favoritos e recomendações
+  // ============================================================
+  // 1. Carregar fundos, favoritos e recomendações
+  // ============================================================
   useEffect(() => {
     async function fetchData() {
       try {
@@ -23,10 +27,6 @@ export default function FundsDashboard() {
           api.get("/favorites/"),
           api.get("/recommendations/"),
         ]);
-
-        console.log("📊 /funds/:", fundRes.data);
-        console.log("⭐ /favorites/:", favRes.data);
-        console.log("💡 /recommendations/:", recRes.data);
 
         setFunds(fundRes.data);
         setFavorites(favRes.data.map((f) => f.id));
@@ -38,7 +38,37 @@ export default function FundsDashboard() {
     fetchData();
   }, []);
 
-  // Favoritar / desfavoritar
+  // ============================================================
+  // 2. MESMA FUNÇÃO DO BOTÃO /funds/{cnpj}/metrics
+  // ============================================================
+  async function computeMetrics(cnpj) {
+    try {
+      const res = await api.get(`/funds/${cnpj}/metrics`);
+
+      // salva as métricas dentro do estado
+      setMetrics((prev) => ({
+        ...prev,
+        [cnpj]: res.data,
+      }));
+    } catch (err) {
+      console.error("Erro ao obter métricas:", err);
+    }
+  }
+
+  // ============================================================
+  // 3. Chamar computeMetrics AUTOMATICAMENTE ao renderizar
+  // ============================================================
+  useEffect(() => {
+    funds.forEach((fund) => {
+      if (!metrics[fund.cnpj]) {
+        computeMetrics(fund.cnpj);
+      }
+    });
+  }, [funds]);
+
+  // ============================================================
+  // 4. Favoritar / desfavoritar
+  // ============================================================
   async function toggleFavorite(fundId) {
     try {
       if (favorites.includes(fundId)) {
@@ -54,7 +84,9 @@ export default function FundsDashboard() {
     }
   }
 
-  // Gerar PDF do relatório
+  // ============================================================
+  // 5. Gerar relatório PDF
+  // ============================================================
   async function generateReport() {
     try {
       const response = await fetch("http://127.0.0.1:8000/report/generate", {
@@ -73,39 +105,55 @@ export default function FundsDashboard() {
     }
   }
 
-  // Renderiza cards
+  // ============================================================
+  // 6. Renderizar cards com MÉTRICAS DO BACKEND
+  // ============================================================
   function renderFundCards(list) {
     if (!list.length)
       return <p style={{ marginTop: "12px" }}>Nenhum fundo encontrado.</p>;
 
     return (
       <div className="funds-grid">
-        {list.map((fund) => (
-          <div key={fund.id} className="fund-card">
-            <div className="fund-header">
-              <h3>{fund.name}</h3>
-              <button
-                className={
-                  favorites.includes(fund.id) ? "favorite" : "not-favorite"
-                }
-                onClick={() => toggleFavorite(fund.id)}
-              >
-                {favorites.includes(fund.id) ? "★" : "☆"}
-              </button>
-            </div>
+        {list.map((fund) => {
+          const m = metrics[fund.cnpj];
 
-            <p><strong>CNPJ:</strong> {fund.cnpj}</p>
-            <p><strong>Classe:</strong> {fund.class_name || "N/A"}</p>
-            <p><strong>Rentabilidade:</strong> {fund.rentability?.toFixed(2) ?? 0}%</p>
-            <p><strong>Risco:</strong> {fund.risk?.toFixed(2) ?? 0}</p>
-            <p><strong>Sharpe:</strong> {fund.sharpe?.toFixed(2) ?? 0}</p>
-          </div>
-        ))}
+          return (
+            <div key={fund.id} className="fund-card">
+              <div className="fund-header">
+                <h3>{fund.name}</h3>
+                <button
+                  className={
+                    favorites.includes(fund.id) ? "favorite" : "not-favorite"
+                  }
+                  onClick={() => toggleFavorite(fund.id)}
+                >
+                  {favorites.includes(fund.id) ? "★" : "☆"}
+                </button>
+              </div>
+
+              <p><strong>CNPJ:</strong> {fund.cnpj}</p>
+              <p><strong>Classe:</strong> {fund.class_name || "N/A"}</p>
+
+              {/* ---------------- MÉTRICAS REAIS ---------------- */}
+              {!m && <p>Carregando métricas...</p>}
+
+              {m && (
+                <>
+                  <p><strong>Rentabilidade:</strong> {m.rentability.toFixed(4)}</p>
+                  <p><strong>Volatilidade:</strong> {m.volatility.toFixed(4)}</p>
+                  <p><strong>Sharpe:</strong> {m.sharpe.toFixed(4)}</p>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }
 
-  // Alterna abas
+  // ============================================================
+  // 7. Abas
+  // ============================================================
   function getActiveList() {
     switch (activeTab) {
       case "favorites":
@@ -119,7 +167,8 @@ export default function FundsDashboard() {
 
   return (
     <div className="container">
-      {/* Cabeçalho e botão de relatório */}
+
+      {/* Cabeçalho + relatório */}
       <div
         style={{
           display: "flex",
@@ -141,12 +190,14 @@ export default function FundsDashboard() {
         >
           Todos os Fundos
         </button>
+
         <button
           className={activeTab === "favorites" ? "tab active" : "tab"}
           onClick={() => setActiveTab("favorites")}
         >
           Favoritos
         </button>
+
         <button
           className={activeTab === "recommendations" ? "tab active" : "tab"}
           onClick={() => setActiveTab("recommendations")}
@@ -155,7 +206,7 @@ export default function FundsDashboard() {
         </button>
       </div>
 
-      {/* Lista dinâmica */}
+      {/* Render */}
       {renderFundCards(getActiveList())}
     </div>
   );
