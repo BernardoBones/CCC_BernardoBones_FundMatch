@@ -1,3 +1,6 @@
+/* =========================== */
+/* ROOT + MODO CLARO/ESCURO    */
+/* =========================== */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -7,32 +10,34 @@
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
+
+/* =========================== */
+/* GLOBAIS                    */
+/* =========================== */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  display: block; /* IMPORTANTÍSSIMO → evita conflito */
 }
 
 a {
   font-weight: 500;
   color: #646cff;
-  text-decoration: inherit;
+  text-decoration: none;
 }
 a:hover {
   color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
 }
 
 button {
@@ -49,20 +54,81 @@ button {
 button:hover {
   border-color: #646cff;
 }
-button:focus,
-button:focus-visible {
+button:focus {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* =========================== */
+/* LOGIN / REGISTER            */
+/* =========================== */
+
+/* Container centralizado */
+.auth-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Card */
+.auth-box {
+  background: #1a1a1a;
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+/* Inputs */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #2b2b2b;
+  color: white;
+}
+
+/* Modo claro para inputs */
+@media (prefers-color-scheme: light) {
+  .auth-box {
+    background: #ffffff;
+  }
+  input {
+    background: #f0f0f0;
+    color: #000;
+  }
+}
+
+/* Mensagens */
+.error {
+  color: #ff6b6b;
+  margin-top: 10px;
+}
+
+.success {
+  color: #4caf50;
+  margin-top: 10px;
+}
+
+/* Botão estilo link (texto) */
+.link-button {
+  background: none;
+  border: none;
+  color: #646cff;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 0;
+}
+.link-button:hover {
+  color: #747bff;
 }
