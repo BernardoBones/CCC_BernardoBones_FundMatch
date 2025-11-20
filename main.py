@@ -13,7 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from backend.app.cvm_ingest import run_cvm_ingestion
 import atexit
 
-
+# uvicorn main:app --reload
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FundMatch API", version="0.2.0")
